@@ -6,6 +6,10 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.10']
 
     services:
       postgres:
@@ -29,16 +33,22 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: ${{ matrix.python-version }}
 
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          pip install ruff
+          pip install ruff pycodestyle
 
       - name: Lint backend
         run: ruff check backend/
+
+      - name: Check backend formatting
+        run: ruff format --check backend/
+
+      - name: Check backend style
+        run: pycodestyle backend/ --exclude=migrations --max-line-length=88
 
       - name: Test backend
         env:
@@ -125,4 +135,8 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: Kittygram workflow completed successfully.
+          message: |
+            Kittygram workflow completed successfully.
+            Actor: ${{ github.actor }}
+            Commit message: ${{ github.event.commits[0].message }}
+            Commit link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
