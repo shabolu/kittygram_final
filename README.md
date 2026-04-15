@@ -1,26 +1,100 @@
-#  Как работать с репозиторием финального задания
+# Kittygram
 
-## Что нужно сделать
+Kittygram - сервис для публикации котиков. Пользователи могут
+регистрироваться, авторизоваться, добавлять карточки котов, указывать их цвет,
+год рождения, достижения и загружать изображения.
 
-Настроить запуск проекта Kittygram в контейнерах и CI/CD с помощью GitHub Actions
+Цель проекта - подготовить приложение к запуску в контейнерах, подключить
+PostgreSQL, настроить Nginx gateway для раздачи frontend, static и media, а
+также автоматизировать проверку и публикацию Docker-образов через GitHub
+Actions.
 
-## Как проверить работу с помощью автотестов
+## Функции
 
-В корне репозитория создайте файл tests.yml со следующим содержимым:
-```yaml
-repo_owner: ваш_логин_на_гитхабе
-kittygram_domain: полная ссылка (https://доменное_имя) на ваш проект Kittygram
-taski_domain: полная ссылка (https://доменное_имя) на ваш проект Taski
-dockerhub_username: ваш_логин_на_докерхабе
+- регистрация и авторизация пользователей;
+- просмотр списка котов;
+- добавление, редактирование и удаление карточек котов;
+- загрузка изображений;
+- хранение данных в PostgreSQL;
+- раздача пользовательских файлов и статики через Nginx;
+- автоматическая проверка проекта и сборка Docker-образов.
+
+## Стек технологий
+
+- Python 3.9;
+- Django 3.2;
+- Django REST Framework;
+- Djoser;
+- PostgreSQL 13;
+- Gunicorn;
+- React;
+- Node.js 18;
+- Nginx;
+- Docker;
+- Docker Compose;
+- GitHub Actions;
+- Ruff.
+
+## Запуск проекта
+
+Создайте файл `.env` в корне проекта:
+
+```bash
+cp .env.example .env
 ```
 
-Скопируйте содержимое файла `.github/workflows/main.yml` в файл `kittygram_workflow.yml` в корневой директории проекта.
+Заполните переменные окружения:
 
-Для локального запуска тестов создайте виртуальное окружение, установите в него зависимости из backend/requirements.txt и запустите в корневой директории проекта `pytest`.
+```env
+POSTGRES_DB=kittygram
+POSTGRES_USER=kittygram_user
+POSTGRES_PASSWORD=change_me
+DB_NAME=kittygram
+DB_HOST=db
+DB_PORT=5432
 
-## Чек-лист для проверки перед отправкой задания
+SECRET_KEY=change_me
+DEBUG=False
+ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.example
+CSRF_TRUSTED_ORIGINS=https://your-domain.example
 
-- Проект Taski доступен по доменному имени, указанному в `tests.yml`.
-- Проект Kittygram доступен по доменному имени, указанному в `tests.yml`.
-- Пуш в ветку main запускает тестирование и деплой Kittygram, а после успешного деплоя вам приходит сообщение в телеграм.
-- В корне проекта есть файл `kittygram_workflow.yml`.
+DOCKERHUB_USERNAME=username
+```
+
+Назначение переменных:
+
+- `POSTGRES_DB` - имя базы данных;
+- `POSTGRES_USER` - пользователь базы данных;
+- `POSTGRES_PASSWORD` - пароль пользователя базы данных;
+- `DB_HOST` - хост базы данных, для Docker Compose должен быть `db`;
+- `DB_PORT` - порт PostgreSQL;
+- `SECRET_KEY` - секретный ключ Django;
+- `DEBUG` - режим отладки;
+- `ALLOWED_HOSTS` - разрешённые хосты через запятую;
+- `CSRF_TRUSTED_ORIGINS` - доверенные источники для CSRF через запятую;
+- `DOCKERHUB_USERNAME` - имя пользователя Docker Hub.
+
+Соберите и запустите контейнеры:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Проверьте состояние контейнеров:
+
+```bash
+docker compose ps
+```
+
+Приложение будет доступно по адресу:
+
+```text
+http://localhost:9000/
+```
+
+Остановить проект:
+
+```bash
+docker compose down
+```
