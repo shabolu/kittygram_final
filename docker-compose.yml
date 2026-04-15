@@ -1,27 +1,48 @@
-version: '3'
-
 volumes:
   pg_data:
   static:
+  media:
 
 services:
   db:
     image: postgres:13
+    container_name: db
+    env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
+
   backend:
+    image: ${DOCKERHUB_USERNAME:-username}/kittygram_backend
+    container_name: backend
     build: ./backend/
     env_file: .env
+    depends_on:
+      - db
+    volumes:
+      - static:/app/collected_static
+      - media:/app/media
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn kittygram_backend.wsgi:application --bind 0.0.0.0:9000"
+
   frontend:
-    env_file: .env
+    image: ${DOCKERHUB_USERNAME:-username}/kittygram_frontend
+    container_name: frontend
     build: ./frontend/
     command: cp -r /app/build/. /static/
     volumes:
       - static:/static
+
   gateway:
+    image: ${DOCKERHUB_USERNAME:-username}/kittygram_gateway
+    container_name: gateway
     build: ./nginx/
-    env_file: .env
+    depends_on:
+      - backend
+      - frontend
     ports:
       - 9000:80
     volumes:
       - static:/static
+      - media:/media
